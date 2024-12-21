@@ -36,7 +36,7 @@ public class Game(int gameID, Player host)
 
         Players.ForEach(player =>
         {
-            Entities.Add(Piece.MakeT(player.PlayerID, player.Color));
+            Entities.Add(Piece.MakeOne(player.PlayerID, player.Color));
         });
 
         Tick = 0;

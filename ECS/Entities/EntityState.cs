@@ -42,6 +42,16 @@ public class EntityState()
             .FirstOrDefault(e => e.Name == "Piece" && e.PlayerID == playerID);
     }
 
+    public void SetPlayerPiece(int playerID, Piece piece)
+    {
+        Piece? CurPiece = (Piece?)Entities.Values
+            .FirstOrDefault(e => e.Name == "Piece" && e.PlayerID == playerID);
+        if (CurPiece != null) Remove(CurPiece);
+        piece.Position = (-5, -5);
+        Add(piece);
+        OnAfterUpdate();
+    }
+
     public List<Entity> GetNeighbors(Entity entity, bool includesDiagonal = false)
     {
         return Grid.GetNeighbors(entity.Position, includesDiagonal)
@@ -60,12 +70,12 @@ public class EntityState()
         {
             entity.EntityID = NextEntityID;
             Entities.Add(entity.EntityID, entity);
-            Grid.Set(entity.Position, entity);
+            if (entity.Name != "Piece") Grid.Set(entity.Position, entity);
         }
         foreach (var entity in ToRemove)
         {
             Entities.Remove(entity.EntityID);
-            Grid.Remove(entity.Position);
+            if (entity.Name != "Piece") Grid.Remove(entity.Position);
         }
         ToAdd = [];
         ToRemove = [];
@@ -74,9 +84,9 @@ public class EntityState()
 
     public void Move(Entity entity, Coord To)
     {
-        Grid.Remove(entity.Position);
+        if (entity.Name != "Piece") Grid.Remove(entity.Position);
         entity.Position = To;
-        Grid.Set(entity.Position, entity);
+        if (entity.Name != "Piece") Grid.Set(entity.Position, entity);
     }
     public void Add(Entity entity)
     {

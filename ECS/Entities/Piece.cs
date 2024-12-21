@@ -54,6 +54,26 @@ public class Piece() : Entity()
         };
     }
 
+    public static Piece MakeStairs(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2)],
+            Color = color,
+        };
+    }
+
+    public static Piece MakeBoomerang(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (1, 0), (1, 1), (1, 2), (2, 1)],
+            Color = color,
+        };
+    }
+
 
     // ------------------------------------------------------------------------
     // 4-Cell Pieces
@@ -66,6 +86,34 @@ public class Piece() : Entity()
             Color = color,
         };
     }
+    public static Piece MakeBox(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (1, 1), (1, 0)],
+            Color = color,
+        };
+    }
+    public static Piece MakeFourL(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (0, 2), (1, 2)],
+            Color = color,
+        };
+    }
+    public static Piece MakeZ(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (1, 1), (1, 2)],
+            Color = color,
+        };
+    }
+
 
 
     // ------------------------------------------------------------------------
@@ -85,7 +133,7 @@ public class Piece() : Entity()
         return new()
         {
             PlayerID = playerID,
-            Cells = [(0, 0), (0, 1), (1, 2)],
+            Cells = [(0, 0), (0, 1), (0, 2)],
             Color = color,
         };
     }

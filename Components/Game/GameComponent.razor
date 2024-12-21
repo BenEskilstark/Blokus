@@ -1,6 +1,7 @@
 @inject LobbyService Lobby;
 @inject IJSRuntime JSRuntime;
 
+@using Blokus.DataStructures;
 @using Coord = (int X, int Y);
 
 @* <button class="btn btn-primary" @onclick="() => {}">Click me</button> *@
@@ -27,7 +28,7 @@
         if (e.Name == "Piece") {
             foreach (Coord p in e.Cells) {
                 Coord cpos = (p.X + e.Position.X, p.Y + e.Position.Y);
-                <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(cpos)) 
+                <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(cpos) + "opacity: 50%;") 
                     onclick="@(() => Click(cpos))"
                     oncontextmenu="@(() => HandleRightClick(cpos))"
                     onmouseover="@(() => MouseOver(cpos))"
@@ -60,7 +61,6 @@
     .block {
         position: absolute;
         box-sizing: border-box;
-        opacity: 75%;
         height: @(100.0 /(CurGame?.Height ?? 2))%;
         width: @(100.0 / (CurGame?.Width ?? 2))%;
     }
@@ -104,17 +104,88 @@
         StateHasChanged();
     }
 
-    public void Click(Coord pos) {
+    public void Click(Coord p) {
         Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
-        if (playerPiece != null) {
-            playerPiece.Cells.ForEach(c => {
-                CurGame.Entities.Add(new Block() { 
-                    Position = (pos.X + c.X, pos.Y + c.Y), 
-                    Color = CurPlayer.Color
+        if (playerPiece == null) return;
+        Coord pos = playerPiece.Position;
+        bool canPlace = true;
+
+        // check that you're not directly overlapping
+        playerPiece.Cells.ForEach(c => {
+            Entity? overlap = CurGame.Entities.Grid.At((pos.X + c.X, pos.Y + c.Y));
+            if (overlap != null && overlap.Name != "Piece") canPlace = false;
+        });
+        if (!canPlace) return;
+
+        // check that you are on a diagonal with your own block or at a corner
+        canPlace = false;
+        playerPiece.Cells.ForEach(c => {
+            CurGame.Entities.Grid
+                .GetDiagonalNeighbors((pos.X + c.X, pos.Y + c.Y))
+                .ForEach(n => {
+                    Entity? overlap = CurGame.Entities.Grid.At(n);
+                    if (
+                        overlap != null && overlap.Name == "Block" && 
+                        overlap.PlayerID == CurPlayer.PlayerID
+                    ) canPlace = true;
+                    if (
+                        n == (-1, -1) || 
+                        n == (-1, CurGame.Height) ||
+                        n == (CurGame.Width, -1) ||
+                        n == (CurGame.Width, CurGame.Height)
+                    ) canPlace = true;
                 });
+        });
+        if (!canPlace) return;
+
+        // check that you don't border your own blocks
+        playerPiece.Cells.ForEach(c => {
+            CurGame.Entities.Grid
+                .GetNeighbors((pos.X + c.X, pos.Y + c.Y))
+                .ForEach(n => {
+                    Entity? overlap = CurGame.Entities.Grid.At(n);
+                    if (
+                        overlap != null && overlap.Name == "Block" && 
+                        overlap.PlayerID == CurPlayer.PlayerID
+                    ) canPlace = false;
+                });
+        });
+        if (!canPlace) return;
+
+        // place the blocks:
+        playerPiece.Cells.ForEach(c => {
+            CurGame.Entities.Add(new Block() { 
+                PlayerID = CurPlayer.PlayerID,
+                Position = (pos.X + c.X, pos.Y + c.Y), 
+                Color = CurPlayer.Color
             });
-        }
-        
+        });
+
+        CurGame.Entities.OnAfterUpdate();
+        StateHasChanged();
+
+        // set next player piece:
+        List<Func<Piece>> nextFn = [
+            () => Piece.MakeT(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.Makel(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeL(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeStairs(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeBoomerang(CurPlayer.PlayerID, CurPlayer.Color),
+
+            () => Piece.Maket(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeFourL(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeBox(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeZ(CurPlayer.PlayerID, CurPlayer.Color),
+
+            () => Piece.MakeLittleL(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeLittlel(CurPlayer.PlayerID, CurPlayer.Color),
+
+            () => Piece.MakeTwo(CurPlayer.PlayerID, CurPlayer.Color),
+            () => Piece.MakeOne(CurPlayer.PlayerID, CurPlayer.Color)
+        ];
+        List<int> weights = nextFn.Select(f => f().Cells.Count).ToList();
+        CurGame.Entities
+            .SetPlayerPiece(CurPlayer.PlayerID, nextFn.WeightedOneOf(weights)());
     }
 
     public string GetPosStyleStr(Coord pos)

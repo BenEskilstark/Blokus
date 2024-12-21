@@ -164,7 +164,7 @@ public class SparseGrid<T>
         }
         return neighbors;
     }
-    public List<Coord> GetDiagonalNeighbors(Coord coord, bool diagonals = false)
+    public List<Coord> GetDiagonalNeighbors(Coord coord)
     {
         return [
             (X: coord.X - 1, Y: coord.Y - 1),
