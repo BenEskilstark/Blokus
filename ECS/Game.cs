@@ -11,7 +11,7 @@ public class Game(int gameID, Player host)
     public event Action? Notify;
 
     public List<Player> Players { get; set; } = [host];
-    public int MaxPlayers { get; } = 2;
+    public int MaxPlayers { get; } = 4;
 
     public bool IsHost(int playerID)
     {
