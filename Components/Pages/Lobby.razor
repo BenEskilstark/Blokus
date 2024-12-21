@@ -1,0 +1,120 @@
+﻿@page "/"
+
+@inject LobbyService LobbyClient;
+@inject LobbySingleton LobbyServer;
+@inject NavigationManager NavigationManager
+
+<PageTitle>Lobby</PageTitle>
+
+<h1>Lobby</h1>
+
+You are Player: <span style="color: @LobbyClient.Player.Color">
+    @LobbyClient.Player.PlayerID
+</span>
+<div>
+    Set your name:
+    <input @bind-value=LobbyClient.Player.Name>
+</div>
+
+<ChatBar ChatThread=@LobbyServer.ChatThread SendMessage=@((text) => LobbyServer.SendChat(LobbyClient.Player,text)) />
+
+@foreach (Game game in LobbyServer.Games)
+{
+    <div class="card" style=@( (LobbyClient.JoinedGame != null && LobbyClient.JoinedGame.GameID != game.GameID) ||
+    game.IsStarted ? "background-color: lightgray;" : "" )>
+    <div><b>Game @game.GameID</b></div>
+    <div>
+        Players joined: @game.Players.Count
+        @foreach (Player player in game.Players)
+            {
+                <div style="color @player.Color">@player.Name</div>
+            }
+        </div>
+        @if (game.IsStarted)
+        {
+            <div>In Progress</div>
+        }
+
+        @if (
+       LobbyClient.JoinedGame == null &&
+       game.Players.Count < game.MaxPlayers
+       )
+        {
+            <button class="btn btn-primary" onclick=@(() => JoinGame(game.GameID))>Join</button>
+        }
+
+        @if (LobbyClient.JoinedGame?.GameID == game.GameID &&
+       game.IsHost(LobbyClient.Player.PlayerID)
+       )
+        {
+            <div>
+                <button class="btn btn-primary" onclick=@(() => StartGame(game.GameID))>Start</button>
+            </div>
+        }
+
+        @if (LobbyClient.JoinedGame?.GameID == game.GameID)
+        {
+            <div>
+                <button class="btn btn-primary" onclick=@(() => LeaveGame(game.GameID))>Leave</button>
+            </div>
+        }
+    </div>
+}
+
+<div>
+    <button class="btn btn-primary" disabled=@(LobbyClient.JoinedGame != null) onclick=@(() => CreateGame())>
+        Create Game
+    </button>
+</div>
+
+
+<style>
+    .card {
+        max-width: 300px;
+        border: 1px solid black;
+        padding: 15px;
+        margin: 15px
+    }
+</style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        LobbyServer.Notify += () => InvokeAsync(StateHasChanged);
+        LobbyServer.NotifyGameOver += (g) => InvokeAsync(StateHasChanged);
+
+        LobbyServer.NotifyGameStart += (gameID) =>
+        {
+            if (LobbyClient.JoinedGame?.GameID == gameID)
+            {
+                NavigationManager.NavigateTo("/game");
+            }
+            else
+            {
+                InvokeAsync(StateHasChanged);
+            }
+        };
+    }
+
+    public void CreateGame()
+    {
+        LobbyClient.JoinedGame = LobbyServer.CreateGame(LobbyClient.Player);
+    }
+
+    public void JoinGame(int gameID)
+    {
+        LobbyClient.JoinedGame = LobbyServer.JoinGame(LobbyClient.Player, gameID);
+    }
+
+
+    public void StartGame(int gameID)
+    {
+        LobbyServer.StartGame(LobbyClient.Player, gameID);
+    }
+
+    public void LeaveGame(int gameID)
+    {
+        LobbyClient.JoinedGame = null;
+        LobbyServer.LeaveGame(LobbyClient.Player, gameID);
+    }
+}

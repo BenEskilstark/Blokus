@@ -1,0 +1,28 @@
+﻿@page "/game"
+
+@using Blokus.Components;
+@using Blokus.Components.Game;
+
+@inject LobbyService Lobby;
+@inject NavigationManager NavigationManager
+
+<PageTitle>Blazor Tower Defense</PageTitle>
+
+<GameComponent />
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (Lobby.JoinedGame == null)
+        {
+            try
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            catch (Exception ex)
+            {
+                // do nothing. Exception thrown for no reason
+            }
+        }
+    }
+}

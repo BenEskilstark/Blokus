@@ -1,0 +1,60 @@
+
+<div class="chat">
+    <div style="font-size: 18px"><b>Chat: </b></div>
+    <br>
+    @foreach (Chat message in ChatThread) {
+        <div>
+            <div><b>@message.Name</b> at @message.TimeStamp</div>
+            <div>
+                @message.Text
+            </div>
+            <br>
+        </div>
+    }
+    <div>
+        <input value=@Message @onkeydown="CheckEnterKey">
+        <button 
+            onclick=@(() => Send())
+            
+        >Send</button>
+    </div>
+</div>
+
+<style>
+    .chat {
+        border: 1px solid black;
+        float: right;
+        height: 100%;
+        width: 263px;
+    }
+</style>
+
+
+@code {
+    [Parameter]
+    public List<Chat> ChatThread { get; set; } = [];
+
+    [Parameter]
+    public Action<string> SendMessage { get; set; } = (chat) => {};
+
+    public string Message { get; set; } = "";
+
+    private void CheckEnterKey(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            Send();
+        } else if (e.Key.Length == 1) {
+            Message += e.Key;
+        } else if (e.Code == "Space") {
+            Message += " ";
+        } else if (e.Code == "Backspace" && !string.IsNullOrEmpty(Message)) {
+            Message = Message.Remove(Message.Length - 1);
+        }
+    }
+
+    public void Send() {
+        SendMessage(Message);
+        Message = "";
+    }
+}

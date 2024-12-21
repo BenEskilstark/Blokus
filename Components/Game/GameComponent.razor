@@ -1,0 +1,80 @@
+@inject LobbyService Lobby;
+
+@using Coord = (int X, int Y);
+
+@* <button class="btn btn-primary" @onclick="() => {}">Click me</button> *@
+
+<div class="game">
+    @for (int x = 0; x < CurGame?.Width; x++)
+    {
+        @for (int y = 0; y < CurGame?.Height; y++)
+        {
+            Coord pos = (x, y);
+            <div class="square" style=@GetPosStyleStr(pos)
+                onclick="@(() => Click(pos))">
+            </div>
+        }
+    }
+    @foreach (Entity e in (CurGame?.Entities?.Entities?.Values ?? [])) {
+
+        if (e.Name == "Block") {
+            <div class="block" style=@("background-color: "+ e.Color + ";" + GetPosStyleStr(e.Position))>
+            </div>
+        }
+        
+    }
+</div>
+
+<style>
+    body {
+        margin: 0;
+    }
+    
+    .game {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+    }
+
+    .square {
+        border: 0.5px solid black;
+        position: absolute;
+        box-sizing: border-box;
+        height: @(100.0 /(CurGame?.Height ?? 2))%;
+        width: @(100.0 / (CurGame?.Width ?? 2))%;
+    }
+
+    .block {
+        position: absolute;
+        box-sizing: border-box;
+        opacity: 75%;
+        height: @(100.0 /(CurGame?.Height ?? 2))%;
+        width: @(100.0 / (CurGame?.Width ?? 2))%;
+    }
+</style>
+
+
+@code {
+    public Game CurGame { get; set; }
+    public Player CurPlayer { get; set; }
+    protected override void OnInitialized()
+    {
+        if (Lobby?.JoinedGame == null) return;
+        CurPlayer = Lobby.Player;
+        CurGame = Lobby.JoinedGame!;
+        CurGame.Notify += () => InvokeAsync(StateHasChanged);
+    }
+
+    public void Click(Coord pos)
+    {
+        CurGame.Entities.Add(new Block() { 
+            Position = pos, 
+            Color = CurPlayer.Color
+        });
+    }
+
+    public string GetPosStyleStr(Coord pos)
+    {
+        return $"top: {100.0 * pos.Y / CurGame.Height}%; left: {100.0 * pos.X / CurGame.Width}%;";
+    }
+}
