@@ -34,7 +34,10 @@ public class Game(int gameID, Player host)
         IsStarted = true;
         Entities = new();
 
-        Entities.Add(Piece.MakeT(host.PlayerID, host.Color));
+        Players.ForEach(player =>
+        {
+            Entities.Add(Piece.MakeT(player.PlayerID, player.Color));
+        });
 
         Tick = 0;
         UpdateInterval = new((object? s) => Update(), null, 0, 500);

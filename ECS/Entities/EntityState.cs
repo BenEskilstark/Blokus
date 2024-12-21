@@ -36,6 +36,11 @@ public class EntityState()
         OnAfterUpdate();
     }
 
+    public Piece? GetPlayerPiece(int playerID)
+    {
+        return (Piece?)Entities.Values
+            .FirstOrDefault(e => e.Name == "Piece" && e.PlayerID == playerID);
+    }
 
     public List<Entity> GetNeighbors(Entity entity, bool includesDiagonal = false)
     {
@@ -67,7 +72,12 @@ public class EntityState()
     }
 
 
-
+    public void Move(Entity entity, Coord To)
+    {
+        Grid.Remove(entity.Position);
+        entity.Position = To;
+        Grid.Set(entity.Position, entity);
+    }
     public void Add(Entity entity)
     {
         ToAdd.Add(entity);

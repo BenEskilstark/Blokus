@@ -1,4 +1,5 @@
 @inject LobbyService Lobby;
+@inject IJSRuntime JSRuntime;
 
 @using Coord = (int X, int Y);
 
@@ -11,15 +12,27 @@
         {
             Coord pos = (x, y);
             <div class="square" style=@GetPosStyleStr(pos)
-                onclick="@(() => Click(pos))">
+                onclick="@(() => Click(pos))"
+                oncontextmenu="@(() => HandleRightClick(pos))"
+                onmouseover="@(() => MouseOver(pos))"
+            >
             </div>
         }
     }
     @foreach (Entity e in (CurGame?.Entities?.Entities?.Values ?? [])) {
 
         if (e.Name == "Block") {
-            <div class="block" style=@("background-color: "+ e.Color + ";" + GetPosStyleStr(e.Position))>
-            </div>
+            <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(e.Position)) />
+        } 
+        if (e.Name == "Piece") {
+            foreach (Coord p in e.Cells) {
+                Coord cpos = (p.X + e.Position.X, p.Y + e.Position.Y);
+                <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(cpos)) 
+                    onclick="@(() => Click(cpos))"
+                    oncontextmenu="@(() => HandleRightClick(cpos))"
+                    onmouseover="@(() => MouseOver(cpos))"
+                />
+            }
         }
         
     }
@@ -53,6 +66,12 @@
     }
 </style>
 
+<script>
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    }, false);
+</script>
+
 
 @code {
     public Game CurGame { get; set; }
@@ -65,16 +84,44 @@
         CurGame.Notify += () => InvokeAsync(StateHasChanged);
     }
 
-    public void Click(Coord pos)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        CurGame.Entities.Add(new Block() { 
-            Position = pos, 
-            Color = CurPlayer.Color
-        });
+    }
+
+    public void MouseOver(Coord pos) {
+        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        if (playerPiece != null) {
+            CurGame.Entities.Move(playerPiece, pos);
+        }
+        StateHasChanged();
+    }
+
+    public void HandleRightClick(Coord pos) {
+        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        if (playerPiece != null) {
+            playerPiece.RotateClockwise();
+        }
+        StateHasChanged();
+    }
+
+    public void Click(Coord pos) {
+        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        if (playerPiece != null) {
+            playerPiece.Cells.ForEach(c => {
+                CurGame.Entities.Add(new Block() { 
+                    Position = (pos.X + c.X, pos.Y + c.Y), 
+                    Color = CurPlayer.Color
+                });
+            });
+        }
+        
     }
 
     public string GetPosStyleStr(Coord pos)
     {
         return $"top: {100.0 * pos.Y / CurGame.Height}%; left: {100.0 * pos.X / CurGame.Width}%;";
+    }
+    public string GetColorStyleStr(Entity e) {
+        return "background-color: "+ e.Color + ";";
     }
 }
