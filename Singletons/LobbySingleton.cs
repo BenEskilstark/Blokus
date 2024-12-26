@@ -48,7 +48,7 @@ public class LobbySingleton()
 
         if (game.Players.Count < game.MaxPlayers)
         {
-            player.Color = new List<string>(["steelblue", "green", "purple", "orange"])[game.Players.Count];
+            player.Color = new List<string>(["steelblue", "green", "purple", "orange"])[game.Players.Count - 1];
             game.Players.Add(player);
             Notify?.Invoke();
             return game;

@@ -38,9 +38,10 @@ public class Game(int gameID, Player host)
         {
             Entities.Add(Piece.MakeOne(player.PlayerID, player.Color));
         });
+        Entities.OnAfterUpdate();
 
         Tick = 0;
-        UpdateInterval = new((object? s) => Update(), null, 0, 500);
+        // UpdateInterval = new((object? s) => Update(), null, 0, 500);
         Notify?.Invoke();
     }
 
@@ -49,7 +50,7 @@ public class Game(int gameID, Player host)
         Tick++;
         // Console.WriteLine("Tick");
         // Entities.ForEach(Console.WriteLine);
-        Systems.ForEach(s => s.Update(Entities));
+        // Systems.ForEach(s => s.Update(Entities));
         Entities.OnAfterUpdate();
         Notify?.Invoke();
     }

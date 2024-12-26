@@ -76,6 +76,7 @@
 @code {
     public Game CurGame { get; set; }
     public Player CurPlayer { get; set; }
+    public Timer? Debouncer { get; set; }
     protected override void OnInitialized()
     {
         if (Lobby?.JoinedGame == null) return;
@@ -84,16 +85,26 @@
         CurGame.Notify += () => InvokeAsync(StateHasChanged);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-    }
-
     public void MouseOver(Coord pos) {
         Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        if (playerPiece != null && playerPiece.Position == pos) return;
         if (playerPiece != null) {
             CurGame.Entities.Move(playerPiece, pos);
         }
         StateHasChanged();
+        @* if (Debouncer != null ) {
+            Debouncer.Dispose();
+        }
+        Debouncer = new((object? s) => DoMouseOver(pos), null, 300, System.Threading.Timeout.Infinite); *@
+    }
+
+    private void DoMouseOver(Coord pos) {
+        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        if (playerPiece != null) {
+            CurGame.Entities.Move(playerPiece, pos);
+        }
+        Debouncer = null;
+        InvokeAsync(StateHasChanged);
     }
 
     public void HandleRightClick(Coord pos) {
