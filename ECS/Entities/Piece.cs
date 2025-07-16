@@ -73,7 +73,69 @@ public class Piece() : Entity()
             Color = color,
         };
     }
-
+    public static Piece MakePlus(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 1), (1, 0), (2, 1), (1, 1), (1, 2)],
+            Color = color,
+        };
+    }
+    public static Piece MakeBigL(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (1, 0), (2, 0), (0, 1), (0, 2)],
+            Color = color,
+        };
+    }
+    public static Piece MakeNubBox(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (1, 0), (1, 1), (0, 1), (2, 1)],
+            Color = color,
+        };
+    }
+    public static Piece MakeS(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (1, 1), (2, 1), (2, 2)],
+            Color = color,
+        };
+    }
+    public static Piece MakeU(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (1, 0), (1, 1), (1, 2), (0, 2)],
+            Color = color,
+        };
+    }
+    public static Piece MakeStaff(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1)],
+            Color = color,
+        };
+    }
+    public static Piece MakeLongZ(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (1, 0), (1, 1), (2, 1), (3, 1)],
+            Color = color,
+        };
+    }
 
     // ------------------------------------------------------------------------
     // 4-Cell Pieces
@@ -101,6 +163,15 @@ public class Piece() : Entity()
         {
             PlayerID = playerID,
             Cells = [(0, 0), (0, 1), (0, 2), (1, 2)],
+            Color = color,
+        };
+    }
+    public static Piece MakeFourl(int? playerID = null, string color = "grey")
+    {
+        return new()
+        {
+            PlayerID = playerID,
+            Cells = [(0, 0), (0, 1), (0, 2), (0, 3)],
             Color = color,
         };
     }

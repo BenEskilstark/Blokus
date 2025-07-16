@@ -36,16 +36,16 @@ You are Player: <span style="color: @LobbyClient.Player.Color">
         }
 
         @if (
-       LobbyClient.JoinedGame == null &&
-       game.Players.Count < game.MaxPlayers
-       )
+            LobbyClient.JoinedGame == null &&
+            game.Players.Count < game.MaxPlayers
+        )
         {
             <button class="btn btn-primary" onclick=@(() => JoinGame(game.GameID))>Join</button>
         }
 
         @if (LobbyClient.JoinedGame?.GameID == game.GameID &&
-       game.IsHost(LobbyClient.Player.PlayerID)
-       )
+            game.IsHost(LobbyClient.Player.PlayerID)
+        )
         {
             <div>
                 <button class="btn btn-primary" onclick=@(() => StartGame(game.GameID))>Start</button>
