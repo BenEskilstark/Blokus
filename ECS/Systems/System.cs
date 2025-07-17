@@ -5,5 +5,5 @@ using Blokus.ECS.Entities;
 public abstract class System
 {
     public abstract bool IsRelevant(Entity entity);
-    public abstract void Update(EntityState entities);
+    public abstract void Update(EntityContext entities);
 }

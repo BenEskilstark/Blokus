@@ -4,7 +4,7 @@ using Blokus.DataStructures;
 
 using Coord = (int X, int Y);
 
-public class EntityState()
+public class EntityContext()
 {
     private int _nextEntityID = 0;
     public int NextEntityID

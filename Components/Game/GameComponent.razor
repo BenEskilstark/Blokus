@@ -5,8 +5,16 @@
 @using Coord = (int X, int Y);
 
 @* <button class="btn btn-primary" @onclick="() => {}">Click me</button> *@
-
-<div class="game">
+<h3>
+    Player Turn: @CurGame?.GetCurPlayerTurn()?.Name 
+    @(CurGame?.IsMyTurn(CurPlayer) == true ? "(That's you)" : "" )
+</h3>
+<div class="game" 
+    @ref="focusableElement"
+    tabindex="0" 
+    @onkeydown="HandleKeyPress" @onkeydown:preventDefault="true" 
+    style="outline:none;"
+>
     @for (int x = 0; x < CurGame?.Width; x++)
     {
         @for (int y = 0; y < CurGame?.Height; y++)
@@ -20,7 +28,7 @@
             </div>
         }
     }
-    @foreach (Entity e in (CurGame?.Entities?.Entities?.Values ?? [])) {
+    @foreach (Entity e in (CurGame?.EntContext?.Entities?.Values ?? [])) {
 
         if (e.Name == "Block") {
             <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(e.Position)) />
@@ -46,7 +54,9 @@
     
     .game {
         width: 100%;
+        max-width: 800px;
         height: 100vh;
+        max-height: 800px;          
         position: relative;
     }
 
@@ -77,6 +87,7 @@
     public Game CurGame { get; set; }
     public Player CurPlayer { get; set; }
     public Timer? Debouncer { get; set; }
+    private ElementReference focusableElement;
     protected override void OnInitialized()
     {
         if (Lobby?.JoinedGame == null) return;
@@ -86,10 +97,10 @@
     }
 
     public void MouseOver(Coord pos) {
-        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        Piece? playerPiece = CurGame.EntContext.GetPlayerPiece(CurPlayer.PlayerID);
         if (playerPiece != null && playerPiece.Position == pos) return;
         if (playerPiece != null) {
-            CurGame.Entities.Move(playerPiece, pos);
+            CurGame.EntContext.Move(playerPiece, pos);
         }
         StateHasChanged();
         @* if (Debouncer != null ) {
@@ -98,17 +109,25 @@
         Debouncer = new((object? s) => DoMouseOver(pos), null, 300, System.Threading.Timeout.Infinite); *@
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await focusableElement.FocusAsync();
+        }
+    }
+
     private void DoMouseOver(Coord pos) {
-        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        Piece? playerPiece = CurGame.EntContext.GetPlayerPiece(CurPlayer.PlayerID);
         if (playerPiece != null) {
-            CurGame.Entities.Move(playerPiece, pos);
+            CurGame.EntContext.Move(playerPiece, pos);
         }
         Debouncer = null;
         InvokeAsync(StateHasChanged);
     }
 
     public void HandleRightClick(Coord pos) {
-        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
+        Piece? playerPiece = CurGame.EntContext.GetPlayerPiece(CurPlayer.PlayerID);
         if (playerPiece != null) {
             playerPiece.RotateClockwise();
         }
@@ -116,87 +135,19 @@
     }
 
     public void Click(Coord p) {
-        Piece? playerPiece = CurGame.Entities.GetPlayerPiece(CurPlayer.PlayerID);
-        if (playerPiece == null) return;
-        Coord pos = playerPiece.Position;
-        bool canPlace = true;
+        if(CurGame.TryPlacePiece(CurPlayer)) {
+            CurGame.EndTurn();
+            StateHasChanged();
+        }
+    }
 
-        // check that you're not directly overlapping
-        playerPiece.Cells.ForEach(c => {
-            Entity? overlap = CurGame.Entities.Grid.At((pos.X + c.X, pos.Y + c.Y));
-            if (overlap != null && overlap.Name != "Piece") canPlace = false;
-        });
-        if (!canPlace) return;
-
-        // check that you are on a diagonal with your own block or at a corner
-        canPlace = false;
-        playerPiece.Cells.ForEach(c => {
-            CurGame.Entities.Grid
-                .GetDiagonalNeighbors((pos.X + c.X, pos.Y + c.Y))
-                .ForEach(n => {
-                    Entity? overlap = CurGame.Entities.Grid.At(n);
-                    if (
-                        overlap != null && overlap.Name == "Block" && 
-                        overlap.PlayerID == CurPlayer.PlayerID
-                    ) canPlace = true;
-                    if (
-                        n == (-1, -1) || 
-                        n == (-1, CurGame.Height) ||
-                        n == (CurGame.Width, -1) ||
-                        n == (CurGame.Width, CurGame.Height)
-                    ) canPlace = true;
-                });
-        });
-        if (!canPlace) return;
-
-        // check that you don't border your own blocks
-        playerPiece.Cells.ForEach(c => {
-            CurGame.Entities.Grid
-                .GetNeighbors((pos.X + c.X, pos.Y + c.Y))
-                .ForEach(n => {
-                    Entity? overlap = CurGame.Entities.Grid.At(n);
-                    if (
-                        overlap != null && overlap.Name == "Block" && 
-                        overlap.PlayerID == CurPlayer.PlayerID
-                    ) canPlace = false;
-                });
-        });
-        if (!canPlace) return;
-
-        // place the blocks:
-        playerPiece.Cells.ForEach(c => {
-            CurGame.Entities.Add(new Block() { 
-                PlayerID = CurPlayer.PlayerID,
-                Position = (pos.X + c.X, pos.Y + c.Y), 
-                Color = CurPlayer.Color
-            });
-        });
-
-        CurGame.Entities.OnAfterUpdate();
-        StateHasChanged();
-
-        // set next player piece:
-        List<Func<Piece>> nextFn = [
-            () => Piece.MakeT(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.Makel(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeL(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeStairs(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeBoomerang(CurPlayer.PlayerID, CurPlayer.Color),
-
-            () => Piece.Maket(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeFourL(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeBox(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeZ(CurPlayer.PlayerID, CurPlayer.Color),
-
-            () => Piece.MakeLittleL(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeLittlel(CurPlayer.PlayerID, CurPlayer.Color),
-
-            () => Piece.MakeTwo(CurPlayer.PlayerID, CurPlayer.Color),
-            () => Piece.MakeOne(CurPlayer.PlayerID, CurPlayer.Color)
-        ];
-        List<int> weights = nextFn.Select(f => f().Cells.Count).ToList();
-        CurGame.Entities
-            .SetPlayerPiece(CurPlayer.PlayerID, nextFn.WeightedOneOf(weights)());
+    public async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == " " || e.Code == "Space") 
+        {
+            CurGame.CyclePieceUp(CurPlayer);
+            StateHasChanged();
+        }
     }
 
     public string GetPosStyleStr(Coord pos)

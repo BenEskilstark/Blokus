@@ -11,7 +11,7 @@ public class PieceSystem() : System()
         return entity.Name == "Piece";
     }
 
-    public override void Update(EntityState entities)
+    public override void Update(EntityContext entities)
     {
         entities.ForEach(entity =>
         {

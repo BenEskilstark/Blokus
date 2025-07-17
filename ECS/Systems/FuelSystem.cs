@@ -10,7 +10,7 @@ public class FuelSystem() : System()
         return false;
     }
 
-    public override void Update(EntityState entities)
+    public override void Update(EntityContext entities)
     {
         entities.ForEach(entity =>
         {
