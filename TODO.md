@@ -1,0 +1,2 @@
+- score keeping
+- classes for screen coords and grid coordsg
