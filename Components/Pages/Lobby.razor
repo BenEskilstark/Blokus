@@ -4,68 +4,82 @@
 @inject LobbySingleton LobbyServer;
 @inject NavigationManager NavigationManager
 
-<PageTitle>Lobby</PageTitle>
+<PageTitle>Blokus Lobby</PageTitle>
 
-<h1>Lobby</h1>
+<div style="display: flex">
+    <div style="width: 100%; max-width: 720px;">
+        <h1>Lobby</h1>
 
-You are Player: <span style="color: @LobbyClient.Player.Color">
-    @LobbyClient.Player.PlayerID
-</span>
-<div>
-    Set your name:
-    <input @bind-value=LobbyClient.Player.Name>
-</div>
-
-<ChatBar ChatThread=@LobbyServer.ChatThread SendMessage=@((text) => LobbyServer.SendChat(LobbyClient.Player,text)) />
-
-@foreach (Game game in LobbyServer.Games)
-{
-    <div class="card" style=@( (LobbyClient.JoinedGame != null && LobbyClient.JoinedGame.GameID != game.GameID) ||
-    game.IsStarted ? "background-color: lightgray;" : "" )>
-    <div><b>Game @game.GameID</b></div>
-    <div>
-        Players joined: @game.Players.Count
-        @foreach (Player player in game.Players)
-            {
-                <div style="color @player.Color">@player.Name</div>
-            }
+        You are Player: <span style="color: @LobbyClient.Player.Color">
+            @LobbyClient.Player.PlayerID
+        </span>
+        <div>
+            Set your name:
+            <input @bind-value=LobbyClient.Player.Name>
         </div>
-        @if (game.IsStarted)
-        {
-            <div>In Progress</div>
-        }
 
-        @if (
-            LobbyClient.JoinedGame == null &&
-            game.Players.Count < game.MaxPlayers
-        )
+        @foreach (Game game in LobbyServer.Games)
         {
-            <button class="btn btn-primary" onclick=@(() => JoinGame(game.GameID))>Join</button>
-        }
-
-        @if (LobbyClient.JoinedGame?.GameID == game.GameID &&
-            game.IsHost(LobbyClient.Player.PlayerID)
-        )
-        {
+            <div class="card" style=@( (LobbyClient.JoinedGame != null && LobbyClient.JoinedGame.GameID != game.GameID) ||
+            game.IsStarted ? "background-color: lightgray;" : "" )>
+            <div><b>Game @game.GameID</b></div>
             <div>
-                <button class="btn btn-primary" onclick=@(() => StartGame(game.GameID))>Start</button>
+                Players joined: @game.Players.Count
+                @foreach (Player player in game.Players)
+                    {
+                        <div style="color @player.Color">@player.Name</div>
+                    }
+                </div>
+                @if (game.IsStarted)
+                {
+                    <div>In Progress</div>
+                }
+
+                @if (
+                    LobbyClient.JoinedGame == null &&
+                    game.Players.Count < game.MaxPlayers
+                )
+                {
+                    <button class="btn btn-primary" onclick=@(() => JoinGame(game.GameID))>Join</button>
+                }
+
+                @if (LobbyClient.JoinedGame?.GameID == game.GameID &&
+                    game.IsHost(LobbyClient.Player.PlayerID)
+                )
+                {
+                    <div>
+                        <button class="btn btn-primary" onclick=@(() => StartGame(game.GameID))>Start</button>
+                    </div>
+                }
+
+                @if (LobbyClient.JoinedGame?.GameID == game.GameID)
+                {
+                    <div>
+                        <button class="btn btn-primary" onclick=@(() => LeaveGame(game.GameID))>Leave</button>
+                    </div>
+                }
             </div>
         }
 
-        @if (LobbyClient.JoinedGame?.GameID == game.GameID)
-        {
-            <div>
-                <button class="btn btn-primary" onclick=@(() => LeaveGame(game.GameID))>Leave</button>
-            </div>
-        }
+        <div>
+            <button class="btn btn-primary" disabled=@(LobbyClient.JoinedGame != null) onclick=@(() => CreateGame())>
+                Create Game
+            </button>
+        </div>
     </div>
-}
-
-<div>
-    <button class="btn btn-primary" disabled=@(LobbyClient.JoinedGame != null) onclick=@(() => CreateGame())>
-        Create Game
-    </button>
+    <div style="height: 700px">
+        <ChatBar 
+            ChatThread=@LobbyServer.ChatThread 
+            SendMessage=@((text) => LobbyServer.SendChat(LobbyClient.Player,text)) 
+        />
+    </div>
 </div>
+
+
+
+
+
+
 
 
 <style>

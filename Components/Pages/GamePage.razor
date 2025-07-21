@@ -3,21 +3,31 @@
 @using Blokus.Components;
 @using Blokus.Components.Game;
 
-@inject LobbyService Lobby;
+@inject LobbyService LobbyClient;
+@inject LobbySingleton LobbyServer;
 @inject NavigationManager NavigationManager
 
-<PageTitle>Blazor Tower Defense</PageTitle>
+<PageTitle>Blokus</PageTitle>
 
-<GameComponent />
+<div style="display: flex">
+    <GameComponent />
+    <div style="height: 737px; margin-top: 20px">
+        <ChatBar 
+            ChatThread=@LobbyServer.ChatThread 
+            SendMessage=@((text) => LobbyServer.SendChat(LobbyClient.Player,text)) 
+        />
+    </div>
+</div>
+
 
 @code {
     protected override void OnInitialized()
     {
-        if (Lobby.JoinedGame == null)
+        if (LobbyClient.JoinedGame == null)
         {
             try
             {
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("/blokus");
             }
             catch (Exception ex)
             {

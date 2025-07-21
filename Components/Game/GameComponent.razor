@@ -4,48 +4,50 @@
 @using Blokus.DataStructures;
 @using Coord = (int X, int Y);
 
-@* <button class="btn btn-primary" @onclick="() => {}">Click me</button> *@
-<h3>
-    Player Turn: @CurGame?.GetCurPlayerTurn()?.Name 
-    @(CurGame?.IsMyTurn(CurPlayer) == true ? "(That's you)" : "" )
-</h3>
-<div class="game" 
-    @ref="focusableElement"
-    tabindex="0" 
-    @onkeydown="HandleKeyPress" @onkeydown:preventDefault="true" 
-    style="outline:none;"
->
-    @for (int x = 0; x < CurGame?.Width; x++)
-    {
-        @for (int y = 0; y < CurGame?.Height; y++)
+<div style="width: 100%; max-width: 720px;">
+    <h3>
+        Player Turn: @CurGame?.GetCurPlayerTurn()?.Name 
+        @(CurGame?.IsMyTurn(CurPlayer) == true ? "(That's you)" : "" )
+    </h3>
+    <div class="game" 
+        @ref="focusableElement"
+        tabindex="0" 
+        @onkeydown="HandleKeyPress" @onkeydown:preventDefault="true" 
+        style="outline:none;"
+    >
+        @for (int x = 0; x < CurGame?.Width; x++)
         {
-            Coord pos = (x, y);
-            <div class="square" style=@GetPosStyleStr(pos)
-                onclick="@(() => Click(pos))"
-                oncontextmenu="@(() => HandleRightClick(pos))"
-                onmouseover="@(() => MouseOver(pos))"
-            >
-            </div>
-        }
-    }
-    @foreach (Entity e in (CurGame?.EntContext?.Entities?.Values ?? [])) {
-
-        if (e.Name == "Block") {
-            <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(e.Position)) />
-        } 
-        if (e.Name == "Piece") {
-            foreach (Coord p in e.Cells) {
-                Coord cpos = (p.X + e.Position.X, p.Y + e.Position.Y);
-                <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(cpos) + "opacity: 50%;") 
-                    onclick="@(() => Click(cpos))"
-                    oncontextmenu="@(() => HandleRightClick(cpos))"
-                    onmouseover="@(() => MouseOver(cpos))"
-                />
+            @for (int y = 0; y < CurGame?.Height; y++)
+            {
+                Coord pos = (x, y);
+                <div class="square" style=@GetPosStyleStr(pos)
+                    onclick="@(() => Click(pos))"
+                    oncontextmenu="@(() => HandleRightClick(pos))"
+                    onmouseover="@(() => MouseOver(pos))"
+                >
+                </div>
             }
         }
-        
-    }
+        @foreach (Entity e in (CurGame?.EntContext?.Entities?.Values ?? [])) {
+
+            if (e.Name == "Block") {
+                <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(e.Position)) />
+            } 
+            if (e.Name == "Piece") {
+                foreach (Coord p in e.Cells) {
+                    Coord cpos = (p.X + e.Position.X, p.Y + e.Position.Y);
+                    <div class="block" style=@(GetColorStyleStr(e) + GetPosStyleStr(cpos) + "opacity: 50%;") 
+                        onclick="@(() => Click(cpos))"
+                        oncontextmenu="@(() => HandleRightClick(cpos))"
+                        onmouseover="@(() => MouseOver(cpos))"
+                    />
+                }
+            }
+            
+        }
+    </div>
 </div>
+
 
 <style>
     body {
@@ -54,9 +56,9 @@
     
     .game {
         width: 100%;
-        max-width: 800px;
+        max-width: 700px;
         height: 100vh;
-        max-height: 800px;          
+        max-height: 700px;          
         position: relative;
     }
 
