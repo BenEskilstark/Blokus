@@ -1,2 +1,6 @@
+- flipping pieces
+- fix chat not actually scrolling
+- allow passing the turn
 - score keeping
-- classes for screen coords and grid coordsg
+- classes for screen coords and grid coords
+- detect all legal moves
