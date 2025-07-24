@@ -1,24 +1,28 @@
 
-<div class="chat">
-    <div style="font-size: 18px"><b>Chat: </b></div>
-    <br>
-    @foreach (Chat message in ChatThread) {
-        <div>
-            <div><b>@message.Name</b> at @message.TimeStamp</div>
+@inject IJSRuntime JSRuntime
+
+<div style="display: flex; flex-direction: column; height: 100%;">
+    <div class="chat" id="chatContainer">
+        <div style="font-size: 18px"><b>Chat: </b></div>
+        <br>
+        @foreach (Chat message in ChatThread) {
             <div>
-                @message.Text
+                <div><b>@message.Name</b>: </div>
+                <div>
+                    @message.Text
+                </div>
+                <br>
             </div>
-            <br>
-        </div>
-    }
-    <div>
+        }
+    </div>
+    <div style="height: 80px; padding-top: 20px;">
         <input value=@Message @onkeydown="CheckEnterKey">
         <button 
-            onclick=@(() => Send())
-            
+            onclick=@(() => Send())    
         >Send</button>
     </div>
 </div>
+
 
 <style>
     .chat {
@@ -26,8 +30,21 @@
         float: right;
         height: 100%;
         width: 263px;
+        overflow-y: scroll;
     }
 </style>
+
+<script>
+  function scrollToBottom(id) {
+    var element = document.getElementById(id);
+    if (element) {
+        var lastChild = element.lastElementChild;
+        if (lastChild) {
+            lastChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+    }
+  }
+</script>
 
 
 @code {
@@ -38,6 +55,12 @@
     public Action<string> SendMessage { get; set; } = (chat) => {};
 
     public string Message { get; set; } = "";
+
+
+    protected override void OnParametersSet() {
+        StateHasChanged();
+        _ = ScrollToBottom();
+    }
 
     private void CheckEnterKey(KeyboardEventArgs e)
     {
@@ -56,5 +79,11 @@
     public void Send() {
         SendMessage(Message);
         Message = "";
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await Task.Delay(100);
+        await JSRuntime.InvokeVoidAsync("scrollToBottom", "chatContainer");
     }
 }

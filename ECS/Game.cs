@@ -48,8 +48,6 @@ public class Game(int gameID, Player host)
             string color = player.Color;
 
             PieceBanks.Add(player.PlayerID, [
-                () => Piece.MakeOne(playerID, color),
-
                 () => Piece.MakeT(playerID, color),
                 () => Piece.Makel(playerID, color),
                 () => Piece.MakeL(playerID, color),
@@ -73,6 +71,7 @@ public class Game(int gameID, Player host)
                 () => Piece.MakeLittlel(playerID, color),
 
                 () => Piece.MakeTwo(playerID, color),
+                () => Piece.MakeOne(playerID, color),
             ]);
             PieceIndices.Add(playerID, 0);
             EntContext.Add(PieceBanks[playerID][PieceIndices[playerID]]());
